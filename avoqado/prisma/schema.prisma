@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -15,9 +15,9 @@ model Restaurant {
   name  String
   logo  String
   email String
-  phone Int
+  phone String
 
-  Branch Branch[]
+  branches Branch[]
 }
 
 model Branch {
@@ -25,7 +25,7 @@ model Branch {
   name            String
   ppt_image       String
   email           String
-  phone           Int?
+  phone           String?
   city            String
   address         String
   extraAddress    String
@@ -34,8 +34,8 @@ model Branch {
   cuisine         String
   restaurant      Restaurant @relation(fields: [restaurantId], references: [id])
   restaurantId    Int
-  Table           Table[]
-  Menu            Menu[]
+  tables          Table[]
+  menus           Menu[]
 }
 
 model Table {
@@ -44,80 +44,79 @@ model Table {
   order_in_progress Boolean
   branch            Branch  @relation(fields: [branchId], references: [id])
   branchId          Int
-  Order             Order[]
+  order             Order?
 }
 
 model Menu {
-  id             Int              @id @default(autoincrement())
+  id             Int            @id @default(autoincrement())
   name           String?
-  branch         Branch           @relation(fields: [branchId], references: [id])
+  branch         Branch         @relation(fields: [branchId], references: [id])
   branchId       Int
-  MenuCategories MenuCategories[]
+  menuCategories MenuCategory[]
 }
 
-model MenuCategories {
-  id       Int        @id @default(autoincrement())
-  name     String
-  menu     Menu       @relation(fields: [menuId], references: [id])
-  menuId   Int
-  MenuItem MenuItem[]
+model MenuCategory {
+  id        Int        @id @default(autoincrement())
+  name      String
+  menu      Menu       @relation(fields: [menuId], references: [id])
+  menuId    Int
+  menuItems MenuItem[]
 }
 
 model MenuItem {
-  id               Int             @id @default(autoincrement())
-  image            String
-  name             String
-  description      String
-  price            Float
-  available        Boolean
-  menuCategories   MenuCategories? @relation(fields: [menuCategoriesId], references: [id])
-  menuCategoriesId Int?
-  MenuItemExtra    MenuItemExtra[]
-  OrderItem        OrderItem[]
-}
-
-model MenuItemExtra {
-  id             Int              @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   image          String
   name           String
   description    String
   price          Float
   available      Boolean
-  MenuItem       MenuItem?        @relation(fields: [menuItemId], references: [id])
-  menuItemId     Int?
-  OrderItemExtra OrderItemExtra[]
+  menuCategory   MenuCategory?   @relation(fields: [menuCategoryId], references: [id])
+  menuCategoryId Int?
+  menuItemExtras MenuItemExtra[]
+  orderItems     OrderItem[]
+}
+
+model MenuItemExtra {
+  id              Int              @id @default(autoincrement())
+  image           String
+  name            String
+  description     String
+  price           Float
+  available       Boolean
+  menuItem        MenuItem         @relation(fields: [menuItemId], references: [id])
+  menuItemId      Int
+  orderItemExtras OrderItemExtra[]
 }
 
 model Order {
-  id           Int      @id @default(autoincrement())
-  payed        Boolean
+  id           Int         @id @default(autoincrement())
+  paid         Boolean
   creationDate DateTime
   orderedDate  DateTime
-
-  Table     Table?      @relation(fields: [tableId], references: [id])
-  tableId   Int?
-  OrderItem OrderItem[]
-  User      User[]
+  table        Table?      @relation(fields: [tableId], references: [id])
+  tableId      Int?        @unique
+  orderItems   OrderItem[]
+  users        User[]
 }
 
 model OrderItem {
-  id             Int              @id @default(autoincrement())
-  price          Float
-  quantity       Int
-  MenuItem       MenuItem?        @relation(fields: [menuItemId], references: [id])
-  menuItemId     Int?
-  Order          Order?           @relation(fields: [orderId], references: [id])
-  orderId        Int?
-  OrderItemExtra OrderItemExtra[]
+  id              Int              @id @default(autoincrement())
+  price           Float
+  quantity        Int
+  menuItem        MenuItem?        @relation(fields: [menuItemId], references: [id])
+  menuItemId      Int?
+  order           Order            @relation(fields: [orderId], references: [id])
+  orderId         Int
+  orderItemExtras OrderItemExtra[]
 }
 
 model OrderItemExtra {
   id              Int            @id @default(autoincrement())
   quantity        Int
-  MenuItemExtra   MenuItemExtra? @relation(fields: [menuItemExtraId], references: [id])
+  menuItemExtra   MenuItemExtra? @relation(fields: [menuItemExtraId], references: [id])
   menuItemExtraId Int?
-  OrderItem       OrderItem?     @relation(fields: [orderItemId], references: [id])
-  orderItemId     Int?
+  orderItem       OrderItem      @relation(fields: [orderItemId], references: [id])
+  orderItemId     Int
 }
 
 model User {
